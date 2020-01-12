@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <div id="app">
+      {{test}}
+      <div v-text="test"></div>
+      <p>
+        <input type="text" v-model="test" />
+      </p>
+      <p v-html="html"></p>
+      <p>
+        <button @click="onClick">按钮</button>
+      </p>
+    </div>
+    <script src="./compile.js"></script>
+    <script src="./XVue.js"></script>
+    <script>
+      const o = new XVue({
+        el: '#app',
+        data: {
+          test: '模板解析',
+          foo: { bar: 'bar' },
+          html: '<button>v-html test</button>'
+        },
+        methods: {
+          onClick() {
+            this.test = 'hello XVue'
+          }
+        }
+      })
+      console.log(o.$data.test) //123
+    //   o.$data.test = 'hello, Xvue!'
+      console.log(o.$data.test) //hello, Xvue!
+    </script>
+  </body>
+</html>
