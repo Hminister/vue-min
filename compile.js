@@ -17,16 +17,17 @@ class Compile {
     node2Fragment(el) {
         const $fragment = document.createDocumentFragment()
         let child
-        // 将原生节点移动至fragment
+        // 将原生节点移动至fragment 表达式
         while ((child = el.firstChild)) {
-            // appendChild 是移动操作，移动一个节点，child 就会少一个，最终结束循环
-            $fragment.appendChild(child);   
+            // appendChild 是移动操作，如果被插入的节点已经存在于当前文档的文档树中,则那个节点会首先从原先的位置移除,然后再插入到新的位置.
+            //移动一个节点，child 就会少一个，最终结束循环
+            $fragment.appendChild(child);
         }
-
         return $fragment
     }
     // 编译指定片段
     compile(el) {
+        // NodeList 对象是一个节点的集合，是由 Node.childNodes 和 document.querySelectorAll 返回的。
         let childNodes = el.childNodes
         Array.from(childNodes).forEach(node => {
             if(this.isElementNode(node)) {
@@ -34,7 +35,7 @@ class Compile {
                 this.compileElement(node)
             } else if (this.isTextNode(node) && /\{\{(.*)\}\}/.test(node.textContent)) {
                 // 文本节点，只关心{{msg}}格式
-                this.compileText(node, RegExp.$1)// RegExp.$1匹配{{}}之中的内容
+                this.compileText(node, RegExp.$1)// RegExp.$1RegExp的一个属性,指的是与正则表达式匹配的第一个 子匹配(以括号为标志)字符串
             }
             if(node.childNodes && node.childNodes.length) {
                 this.compile(node)
@@ -45,17 +46,19 @@ class Compile {
     compileElement(node) {
     // console.log('编译元素节点');
     // <div v-text="test" @click="onClick"></div>
-
         const attrs = node.attributes
         Array.from(attrs).forEach(attr => {
             const attrName = attr.name
             const exp = attr.value
             if(this.isDirective(attrName)) {
                 //指令
-                const dir = attrName.substr(2) //text
+                const dir = attrName.substring(2) //text 2到end
+                //指令存在则执行
                 this[dir] && this[dir](node, this.$vm, exp)
             } else if (this.isEventDirective(attrName)) {
-                const dir = attrName.substr(1) //click
+                //事件
+                const dir = attrName.substring(1) 
+                //绑定事件
                 this.eventHandler(node, this.$vm, exp, dir)
             }
         })
@@ -104,7 +107,7 @@ class Compile {
     }
 
     // 更新
-    // 能够触发这个 update 方法的时机有两个：1-编译器初始化视图时触发；2-Watcher更新视图时触发
+    // 能够触发这个 update 方法的时机有两个：1-编译器初始化视图；2-Watcher更新视图
     update(node, vm, exp, dir) {
         let updateFn = this[dir + 'Updater']
         updateFn && updateFn(node, vm[exp])
@@ -123,8 +126,12 @@ class Compile {
 
     modelUpdater(node, value) {
         node.value = value;
-    }   
+    }
 
+    /*
+    * @param exp value
+    * @param dir key
+    */
     eventHandler(node, vm, exp, dir) {
         let fn = vm.$options.methods && vm.$options.methods[exp]
         if(dir && fn) {

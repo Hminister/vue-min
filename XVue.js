@@ -1,36 +1,51 @@
 class XVue {
+    // const o = new XVue({
+    //     el: '#app',
+    //     data: {
+    //       test: '模板解析',
+    //       foo: { bar: 'bar' },
+    //       html: '<button>v-html test</button>'
+    //     },
+    //     methods: {
+    //       onClick() {
+    //         this.test = 'hello XVue'
+    //       }
+    //     }
+    // })
     constructor(options) {
        this.$data = options.data
        this.$options = options
+       //数据劫持
        this.observe(this.$data)
        //执行编译
        new Compile(options.el, this)
     }
 
+    //@params: value | Object
     observe(value) {
         if(!value || typeof value !=='object') {
             return false
         }
         Object.keys(value).forEach(key => {
+            //通知变化 get set
             this.defineReactive(value, key, value[key])
-            // 为vue的data做属性代理
+            // 为vue的data做属性代理 $data
             this.proxyData(key)
         })
-
     }
     
     defineReactive(obj, key, val) {
-        //递归查找嵌套属性？？
+        //递归查找嵌套属性
         this.observe(val)
 
         // 创建Dep
         const dep = new Dep()
         Object.defineProperty(obj, key, {
-            enumerable: true,
-            configurable: true,
+            enumerable: true, //可枚举
+            configurable: true, //可配置
 
             get() {
-                Dep.target && dep.addDep(Dep.target)
+                Dep.target && dep.addDep(Dep.target) //Dep.target？？
                 console.log(dep.deps);
                 return val
             },
@@ -40,6 +55,7 @@ class XVue {
                     return false
                 }
                 val = newVal
+                // 修改
                 dep.notify()
             }
         })
